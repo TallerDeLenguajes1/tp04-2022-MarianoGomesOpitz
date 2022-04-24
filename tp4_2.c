@@ -10,6 +10,8 @@ typedef struct Tarea
     int Duracion;      // entre 10 – 100
 } Tarea;
 
+Tarea *BuscarTarea(Tarea **pendietes, Tarea **realizadas, int ID, int *estado, int cantidad);
+
 int main()
 {
     int min = 10, max = 100;
@@ -28,6 +30,7 @@ int main()
     {
         tareasPendientes[i] = (Tarea *)malloc(sizeof(Tarea));
         tareasRealizadas[i] = (Tarea *)malloc(sizeof(Tarea));
+        tareasRealizadas[i] = NULL;
     }
     char *buffer;
     buffer = (char *)malloc(sizeof(char) * 100);
@@ -65,10 +68,6 @@ int main()
             tareasRealizadas[i] = tareasPendientes[i];
             tareasPendientes[i] = NULL;
         }
-        else
-        {
-            tareasRealizadas[i] = NULL;
-        }
     }
 
     puts("\n/----------Listado de tareas realizadas----------/\n");
@@ -94,6 +93,40 @@ int main()
             printf("Duracion de la tarea: %d minutos\n", tareasPendientes[i]->Duracion);
         }
     }
+    char buscar;
+    puts("\n/----------Desea buscar una tarea en especifico?----------/");
+    printf("%cb%c para Si, cualquier otro caracter para no: ", 34, 34);
+    scanf("%c", &buscar);
+    fflush(stdin);
+    int ID;
+    Tarea *tareaBuscada;
+    while (buscar == 'b' || buscar == 'B')
+    {
+        int estado = 0;
+        printf("\nIngrese el ID de la tarea a buscar: ");
+        scanf("%d", &ID);
+        fflush(stdin);
+
+        tareaBuscada = BuscarTarea(tareasPendientes, tareasRealizadas, ID, &estado, cantTareas);
+        printf("Tarea solicitada de ID: %d\n", tareaBuscada->TareaID);
+        printf("Descripcion de la tarea: %s\n", tareaBuscada->Descripcion);
+        printf("Duracion de la tarea: %d\n", tareaBuscada->Duracion);
+        printf("Estado de la tarea: \n");
+        if (estado != 0)
+        {
+            printf("Realizada\n");
+        }
+        else
+        {
+            printf("Pendiente\n");
+        }
+        tareaBuscada = NULL;
+
+        puts("\nDesea buscar otra tarea?");
+        printf("%cb%c para Si, cualquier otro caracter para no: ", 34, 34);
+        scanf("%c", &buscar);
+        fflush(stdin);
+    }
 
     for (int i = 0; i < cantTareas; i++)
     {
@@ -112,4 +145,26 @@ int main()
     puts("\n\nIngrese un caracter para finalizar el programa");
     getchar();
     return 0;
+}
+
+Tarea *BuscarTarea(Tarea **pendietes, Tarea **realizadas, int ID, int *estado, int cantidad)
+{
+    for (int i = 0; i < cantidad; i++)
+    {
+        if (realizadas[i] != NULL)
+        {
+            if (realizadas[i]->TareaID == ID)
+            {
+                *estado = 1;
+                return realizadas[i];
+            }
+        }
+        else
+        {
+            if (pendietes[i]->TareaID == ID)
+            {
+                return pendietes[i];
+            }
+        }
+    }
 }
