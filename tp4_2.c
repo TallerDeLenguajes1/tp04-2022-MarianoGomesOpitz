@@ -10,161 +10,162 @@ typedef struct Tarea
     int Duracion;      // entre 10 – 100
 } Tarea;
 
-Tarea *BuscarTarea(Tarea **pendietes, Tarea **realizadas, int ID, int *estado, int cantidad);
+struct Nodo
+{
+    Tarea tareas;
+    struct Nodo *Next;
+} typedef Nodo;
+
+Nodo *crearListaVacia();
+void insertarTareas(Nodo *listaDeTareas, int cantidad);
+Nodo *crearTarea(Nodo *listaDeTareas, int posicion);
+void mostrarTareas(Nodo *listaDeTareas);
+void mostrarTareaEspecifica(Tarea tareas);
+void estadoTarea(Nodo *pendiente, Nodo *realizada);
+void liberarMemoria(Nodo *lista);
 
 int main()
 {
-    int min = 10, max = 100;
     srand(time(NULL));
 
+    Nodo *tareasPendientes, *tareasRealizadas;
+    tareasPendientes = crearListaVacia();
+    tareasRealizadas = crearListaVacia();
+
     int cantTareas;
-    printf("Ingrese la cantidad de tareas: ");
+    printf("Ingrese la cantidad de tareas a realizar: ");
     scanf("%d", &cantTareas);
     fflush(stdin);
 
-    Tarea **tareasPendientes, **tareasRealizadas;
-    tareasPendientes = (Tarea **)malloc(sizeof(Tarea *) * cantTareas);
-    tareasRealizadas = (Tarea **)malloc(sizeof(Tarea *) * cantTareas);
+    insertarTareas(tareasPendientes, cantTareas);
 
-    for (int i = 0; i < cantTareas; i++)
-    {
-        tareasPendientes[i] = (Tarea *)malloc(sizeof(Tarea));
-        tareasRealizadas[i] = (Tarea *)malloc(sizeof(Tarea));
-        tareasRealizadas[i] = NULL;
-    }
-    char *buffer;
-    buffer = (char *)malloc(sizeof(char) * 100);
-    puts("\n/----------Carga de tareas----------/\n");
-    for (int i = 0; i < cantTareas; i++)
-    {
-        printf("\nTarea %d\n", i);
+    printf("\n/----------Listado de tareas pendientes----------/\n");
+    mostrarTareas(tareasPendientes);
 
-        tareasPendientes[i]->TareaID = i + 1;
+    estadoTarea(tareasPendientes, tareasRealizadas);
 
-        printf("Ingrese la descripcion de la tarea: ");
-        gets(buffer);
-        tareasPendientes[i]->Descripcion = (char *)malloc(sizeof(char) * (strlen(buffer) + 1));
-        strcpy(tareasPendientes[i]->Descripcion, buffer);
+    printf("\n/----------Listado de tareas realizadas----------/\n");
+    mostrarTareas(tareasRealizadas);
 
-        tareasPendientes[i]->Duracion = (rand() % (100 - 10 + 1)) + 10;
-    }
-    free(buffer);
+    printf("\n/----------Listado de tareas que quedaron pendientes----------/\n");
+    mostrarTareas(tareasPendientes);
 
-    char verif;
-    puts("\n/----------Listado de tareas pendientes----------/\n");
-    for (int i = 0; i < cantTareas; i++)
-    {
-        printf("\nTarea %d\n", i);
-        printf("ID de la tareas: %d\n", tareasPendientes[i]->TareaID);
-        printf("Descripcion de la tarea: %s\n", tareasPendientes[i]->Descripcion);
-        printf("Duracion de la tarea: %d minutos\n", tareasPendientes[i]->Duracion);
+    liberarMemoria(tareasPendientes);
+    liberarMemoria(tareasRealizadas);
 
-        puts("Esta tarea ha sido realizada?");
-        printf("%cy%c para Si, cualquiar caracter para No: ", 34, 34);
-        scanf("%c", &verif);
-        fflush(stdin);
-        if (verif == 'y' || verif == 'Y')
-        {
-            tareasRealizadas[i] = tareasPendientes[i];
-            tareasPendientes[i] = NULL;
-        }
-    }
-
-    puts("\n/----------Listado de tareas realizadas----------/\n");
-    for (int i = 0; i < cantTareas; i++)
-    {
-        if (tareasRealizadas[i] != NULL)
-        {
-            printf("\nTarea %d\n", i);
-            printf("ID de la tareas: %d\n", tareasRealizadas[i]->TareaID);
-            printf("Descripcion de la tarea: %s\n", tareasRealizadas[i]->Descripcion);
-            printf("Duracion de la tarea: %d minutos\n", tareasRealizadas[i]->Duracion);
-        }
-    }
-
-    puts("\n/----------Listado de tareas que quedaron pendientes----------/\n");
-    for (int i = 0; i < cantTareas; i++)
-    {
-        if (tareasPendientes[i] != NULL)
-        {
-            printf("\nTarea %d\n", i);
-            printf("ID de la tareas: %d\n", tareasPendientes[i]->TareaID);
-            printf("Descripcion de la tarea: %s\n", tareasPendientes[i]->Descripcion);
-            printf("Duracion de la tarea: %d minutos\n", tareasPendientes[i]->Duracion);
-        }
-    }
-    char buscar;
-    puts("\n/----------Desea buscar una tarea en especifico?----------/");
-    printf("%cb%c para Si, cualquier otro caracter para no: ", 34, 34);
-    scanf("%c", &buscar);
-    fflush(stdin);
-    int ID;
-    Tarea *tareaBuscada;
-    while (buscar == 'b' || buscar == 'B')
-    {
-        int estado = 0;
-        printf("\nIngrese el ID de la tarea a buscar: ");
-        scanf("%d", &ID);
-        fflush(stdin);
-
-        tareaBuscada = BuscarTarea(tareasPendientes, tareasRealizadas, ID, &estado, cantTareas);
-        printf("Tarea solicitada de ID: %d\n", tareaBuscada->TareaID);
-        printf("Descripcion de la tarea: %s\n", tareaBuscada->Descripcion);
-        printf("Duracion de la tarea: %d\n", tareaBuscada->Duracion);
-        printf("Estado de la tarea: \n");
-        if (estado != 0)
-        {
-            printf("Realizada\n");
-        }
-        else
-        {
-            printf("Pendiente\n");
-        }
-        tareaBuscada = NULL;
-
-        puts("\nDesea buscar otra tarea?");
-        printf("%cb%c para Si, cualquier otro caracter para no: ", 34, 34);
-        scanf("%c", &buscar);
-        fflush(stdin);
-    }
-
-    for (int i = 0; i < cantTareas; i++)
-    {
-        if (tareasPendientes[i] != NULL)
-        {
-            free(tareasPendientes[i]);
-        }
-        else
-        {
-            free(tareasRealizadas[i]);
-        }
-    }
-    free(tareasPendientes);
-    free(tareasRealizadas);
-
-    puts("\n\nIngrese un caracter para finalizar el programa");
     getchar();
     return 0;
 }
 
-Tarea *BuscarTarea(Tarea **pendietes, Tarea **realizadas, int ID, int *estado, int cantidad)
+Nodo *crearListaVacia()
+{
+    return NULL;
+}
+
+void insertarTareas(Nodo *listaDeTareas, int cantidad)
 {
     for (int i = 0; i < cantidad; i++)
     {
-        if (realizadas[i] != NULL)
+        listaDeTareas = crearTarea(listaDeTareas, i);
+    }
+}
+
+Nodo *crearTarea(Nodo *listaDeTareas, int posicion)
+{
+    char *buff;
+    buff = (char *)malloc(sizeof(char));
+    printf("Ingrese la descripcion de la tarea %d: ", posicion);
+    gets(buff);
+    int ID = posicion + 1;
+    int duracion = (rand() % (100 - 10 + 1)) + 10;
+    if (listaDeTareas != NULL)
+    {
+        Nodo *NodoAux = listaDeTareas;
+        while (NodoAux != NULL)
         {
-            if (realizadas[i]->TareaID == ID)
-            {
-                *estado = 1;
-                return realizadas[i];
-            }
+            NodoAux = NodoAux->Next;
         }
-        else
+        NodoAux = (Nodo *)malloc(sizeof(Nodo));
+
+        NodoAux->tareas.TareaID = ID;
+
+        NodoAux->tareas.Descripcion = (char *)malloc(sizeof(char) * strlen(buff) + 1);
+        strcpy(NodoAux->tareas.Descripcion, buff);
+
+        NodoAux->tareas.Duracion = duracion;
+
+        NodoAux->Next = NULL;
+
+        return listaDeTareas;
+    }
+    else
+    {
+        listaDeTareas = (Nodo *)malloc(sizeof(Nodo));
+
+        listaDeTareas->tareas.TareaID = ID;
+
+        listaDeTareas->tareas.Descripcion = (char *)malloc(sizeof(char) * strlen(buff) + 1);
+        strcpy(listaDeTareas->tareas.Descripcion, buff);
+
+        listaDeTareas->tareas.Duracion = duracion;
+
+        listaDeTareas->Next = NULL;
+
+        return listaDeTareas;
+    }
+
+    free(buff);
+}
+
+void mostrarTareas(Nodo *listaDeTareas)
+{
+    while (listaDeTareas != NULL)
+    {
+        mostrarTareaEspecifica(listaDeTareas->tareas);
+        listaDeTareas = listaDeTareas->Next;
+    }
+}
+
+void mostrarTareaEspecifica(Tarea tareas)
+{
+    printf("\n/=== TAREA %d ===/\n", tareas.TareaID - 1);
+    printf("ID de la tarea: %d\n", tareas.TareaID);
+    printf("Descripcion de la tarea: %s\n", tareas.Descripcion);
+    printf("Duracion de la tarea: %d\n", tareas.Duracion);
+}
+
+void estadoTarea(Nodo *pendiente, Nodo *realizada)
+{
+    while (pendiente != NULL)
+    {
+        char verif;
+        mostrarTareaEspecifica(pendiente->tareas);
+        puts("Ha sido realizada esta tarea");
+        printf("%cy%c para Si, cualquier caracter para No", 34, 34);
+        scanf("%c", &verif);
+        fflush(stdin);
+
+        Nodo *anterior;
+        if (verif == 'y' || verif == 'Y')
         {
-            if (pendietes[i]->TareaID == ID)
+            while (realizada != NULL)
             {
-                return pendietes[i];
+                realizada = realizada->Next;
             }
+            anterior = pendiente;
+            anterior->Next = pendiente->Next;
+            realizada = pendiente;
+            realizada->Next = NULL;
         }
+
+        pendiente = pendiente->Next;
+    }
+}
+
+void liberarMemoria(Nodo *lista)
+{
+    if (lista != NULL)
+    {
+        free(lista);
     }
 }
