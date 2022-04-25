@@ -17,11 +17,11 @@ struct Nodo
 } typedef Nodo;
 
 Nodo *crearListaVacia();
-void insertarTareas(Nodo *listaDeTareas, int cantidad);
+void insertarTareas(Nodo **listaDeTareas, int cantidad);
 Nodo *crearTarea(Nodo *listaDeTareas, int posicion);
 void mostrarTareas(Nodo *listaDeTareas);
 void mostrarTareaEspecifica(Tarea tareas);
-void estadoTarea(Nodo *pendiente, Nodo *realizada);
+void consultarEstadoTareas(Nodo **listaTareasPendientes, Nodo **listaTareasRealizadas);
 void liberarMemoria(Nodo *lista);
 
 int main()
@@ -37,12 +37,12 @@ int main()
     scanf("%d", &cantTareas);
     fflush(stdin);
 
-    insertarTareas(tareasPendientes, cantTareas);
+    insertarTareas(&tareasPendientes, cantTareas);
 
     printf("\n/----------Listado de tareas pendientes----------/\n");
     mostrarTareas(tareasPendientes);
 
-    estadoTarea(tareasPendientes, tareasRealizadas);
+    consultarEstadoTareas(&tareasPendientes, &tareasRealizadas);
 
     printf("\n/----------Listado de tareas realizadas----------/\n");
     mostrarTareas(tareasRealizadas);
@@ -53,6 +53,7 @@ int main()
     liberarMemoria(tareasPendientes);
     liberarMemoria(tareasRealizadas);
 
+    printf("Ingrese un caracter para finalizar el programa: ");
     getchar();
     return 0;
 }
@@ -62,18 +63,18 @@ Nodo *crearListaVacia()
     return NULL;
 }
 
-void insertarTareas(Nodo *listaDeTareas, int cantidad)
+void insertarTareas(Nodo **listaDeTareas, int cantidad)
 {
     for (int i = 0; i < cantidad; i++)
     {
-        listaDeTareas = crearTarea(listaDeTareas, i);
+        *listaDeTareas = crearTarea(*listaDeTareas, i);
     }
 }
 
 Nodo *crearTarea(Nodo *listaDeTareas, int posicion)
 {
     char *buff;
-    buff = (char *)malloc(sizeof(char));
+    buff = (char *)malloc(sizeof(char) * 50);
     printf("Ingrese la descripcion de la tarea %d: ", posicion);
     gets(buff);
     int ID = posicion + 1;
@@ -81,20 +82,20 @@ Nodo *crearTarea(Nodo *listaDeTareas, int posicion)
     if (listaDeTareas != NULL)
     {
         Nodo *NodoAux = listaDeTareas;
-        while (NodoAux != NULL)
+        while (NodoAux->Next != NULL)
         {
             NodoAux = NodoAux->Next;
         }
-        NodoAux = (Nodo *)malloc(sizeof(Nodo));
+        NodoAux->Next = (Nodo *)malloc(sizeof(Nodo));
 
-        NodoAux->tareas.TareaID = ID;
+        NodoAux->Next->tareas.TareaID = ID;
 
-        NodoAux->tareas.Descripcion = (char *)malloc(sizeof(char) * strlen(buff) + 1);
-        strcpy(NodoAux->tareas.Descripcion, buff);
+        NodoAux->Next->tareas.Descripcion = (char *)malloc(sizeof(char) * strlen(buff) + 1);
+        strcpy(NodoAux->Next->tareas.Descripcion, buff);
 
-        NodoAux->tareas.Duracion = duracion;
+        NodoAux->Next->tareas.Duracion = duracion;
 
-        NodoAux->Next = NULL;
+        NodoAux->Next->Next = NULL;
 
         return listaDeTareas;
     }
@@ -134,32 +135,42 @@ void mostrarTareaEspecifica(Tarea tareas)
     printf("Duracion de la tarea: %d\n", tareas.Duracion);
 }
 
-void estadoTarea(Nodo *pendiente, Nodo *realizada)
+void consultarEstadoTareas(Nodo **tareasPendientes, Nodo **tareasRealizadas)
 {
-    while (pendiente != NULL)
+
+    char verif;
+    Nodo *tareasPendientesAux = NULL;
+    Nodo *puntProxNodoAux = NULL;
+
+    printf("\n(------ Analizando tareas ------)\n");
+
+    while (*tareasPendientes != NULL)
     {
-        char verif;
-        mostrarTareaEspecifica(pendiente->tareas);
-        puts("Ha sido realizada esta tarea");
-        printf("%cy%c para Si, cualquier caracter para No", 34, 34);
+
+        puntProxNodoAux = (*tareasPendientes)->Next;
+
+        mostrarTareaEspecifica((*tareasPendientes)->tareas);
+
+        puts("Ha sido realizada la tarea");
+        printf("%cy%c para %cSi%c, cualquier otro caracter para %cNo%c", 34, 34, 34, 34, 34, 34);
         scanf("%c", &verif);
         fflush(stdin);
 
-        Nodo *anterior;
         if (verif == 'y' || verif == 'Y')
         {
-            while (realizada != NULL)
-            {
-                realizada = realizada->Next;
-            }
-            anterior = pendiente;
-            anterior->Next = pendiente->Next;
-            realizada = pendiente;
-            realizada->Next = NULL;
+            (*tareasPendientes)->Next = *tareasRealizadas;
+            *tareasRealizadas = *tareasPendientes;
+        }
+        else
+        {
+            (*tareasPendientes)->Next = tareasPendientesAux;
+            tareasPendientesAux = *tareasPendientes;
         }
 
-        pendiente = pendiente->Next;
+        *tareasPendientes = puntProxNodoAux;
     }
+
+    *tareasPendientes = tareasPendientesAux;
 }
 
 void liberarMemoria(Nodo *lista)
